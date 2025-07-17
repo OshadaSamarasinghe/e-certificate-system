@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import CertificateForm from "./CertificateForm";
 import CertificateList from "./CertificateList";
@@ -7,11 +7,8 @@ function Dashboard() {
   const [certificates, setCertificates] = useState([]);
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    fetchCertificates();
-  }, []);
-
-  async function fetchCertificates() {
+  // Fixed: useCallback ensures this function reference is stable
+  const fetchCertificates = useCallback(async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/certificates", {
         headers: { Authorization: `Bearer ${token}` },
@@ -20,7 +17,11 @@ function Dashboard() {
     } catch (error) {
       console.error(error);
     }
-  }
+  }, [token]);
+
+  useEffect(() => {
+    fetchCertificates(); // Called once when the component mounts
+  }, [fetchCertificates]); // ✅ Fixes the warning
 
   function handleLogout() {
     localStorage.removeItem("token");
